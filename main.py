@@ -35,27 +35,31 @@ class App:
         if var == "":
             print("Invalid Input")
         else:
-            print(var)
+            print("Updated")
+            post_data()
 
        
+
+
+data = {
+
+            "INTERFACE":"eth0",
+            "PROTO":"static",
+            "ADDRESS": "192.168.0.1",
+            "NETMASK": "255.255.255.0",
+            "GATEWAY": "192.168.0.1"
+            
+}
+
+payload = {
+    "command": "setInterfaceInfo",
+    "data": json.dumps(data)
+}
+# # browser.post("http://fpp.local/fppjson.php$command=setInterfaceInfo&data=", json=data)
+def post_data():
+    r = requests.post("http://fpp.local/fppjson.php", data=payload)
 
 root = Tk()
 
 app = App(root)
 root.mainloop()
-# data = {
-
-#             "INTERFACE":"eth0",
-#             "PROTO":"static",
-#             "ADDRESS": "192.168.0.1",
-#             "NETMASK": "255.255.255.0",
-#             "GATEWAY": "192.168.0.1"
-            
-# }
-
-# payload = {
-#     "command": "setInterfaceInfo",
-#     "data": json.dumps(data)
-# }
-# # browser.post("http://fpp.local/fppjson.php$command=setInterfaceInfo&data=", json=data)
-# r = requests.post("http://fpp.local/fppjson.php", data=payload)
