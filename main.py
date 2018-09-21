@@ -1,60 +1,67 @@
 import requests
 import json
-from tkinter import *
+
+def post_data(data):
+    payload = {
+    "command": "setInterfaceInfo",
+    "data": json.dumps(data)
+}
+    requests.post("http://fpp.local/fppjson.php", data=payload)
 
 data = {
 
-            "INTERFACE":"eth0",
-            "PROTO":"static",
-            "ADDRESS": "192.168.0.1",
-            "NETMASK": "255.255.255.0",
-            "GATEWAY": "192.168.0.1"
+            "INTERFACE":"",
+            "PROTO":"",
+            "ADDRESS": "",
+            "NETMASK": "",
+            "GATEWAY": ""
             
 }
 
+def get_data(interface, data):
+    if interface == 'wlan0':
+        data['SSID'] = input("Enter the WiFi SSID (case sensitive): ")
+        data['PSK'] = input("Enter the WiFi password (case sensitive): ")
+    for x,y in data.items():
+        if x == "INTERFACE":
+            print(f"Setting up {interface}\n")
+            data[x] = interface
+        elif x == "PROTO":
+            set_to_static = input("Set IP address to STATIC?(Y/N): ")
+            print("\n")
+            if set_to_static.lower() == 'y':
+                data[x] = 'static'
+            else:
+                data[x] = 'dhcp'
+        elif x == "ADDRESS":
+            if data['PROTO'] != 'dhcp':
+                if interface == 'eth0':
+                    set_ip_address = input(f"Enter an IP address for {interface} (default=192.168.10.1): ")
+                    print("\n")
+                    if set_ip_address == "":
+                        data[x] = "192.168.10.1"
+                    else:
+                        data[x] = set_ip_address
+                else:
+                    set_ip_address = input(f"Enter an IP address for {interface} (default=192.168.0.110): ")
+                    print("\n")
+                    if set_ip_address == "":
+                        data[x] = "192.168.0.110"
+                    else:
+                        data[x] = set_ip_address
+        elif x == "NETMASK":
+            if data['PROTO'] != 'dhcp':
+                data[x] = "255.255.255.0"
+        elif x == "GATEWAY" and interface == "wlan0":
+            if data['PROTO'] != 'dhcp':
+                data[x] = "192.168.0.1"
+    print(data)
+    return data
 
-class AddressInputForm :
-    def __init__(self) :
-        self.root = None
-        self.nameentry = None
-        self.name = ""
-        self.address = ""
 
-    def CloseWindow(self) :
-        self.name = self.nameentry.get()
-        self.address = self.addressentry.get()
-        self.root.destroy()
+#browser.post("http://fpp.local/fppjson.php$command=setInterfaceInfo&data=", json=data)
 
-    def CreateForm(self) :
-        self.root = Tk()
-        self.root.title("Control Updater")
-        Label(self.root, text="Enter IP address 192.168.").grid(row=0, sticky=W)
-        Label(self.root, text=".").grid(row=0, column=2)
-        Label(self.root, text="Enter address:").grid(row=1, sticky=W)
-
-        self.nameentry = Entry(self.root, width=5, justify=LEFT)
-        self.addressentry = Entry(self.root)
-
-        self.nameentry.grid(row=0, column=1)
-        self.addressentry.grid(row=1, column=1)
-
-        Button(self.root, text="Ok", command=self.CloseWindow).grid(row=2,column=0)
-        Button(self.root, text="Cancel", command=self.CloseWindow).grid(row=2, column=1)
-        self.root.mainloop()
-
-af = AddressInputForm()
-af.CreateForm()
-
-
-       
-
-
-
-
-# payload = {
-#     "command": "setInterfaceInfo",
-#     "data": json.dumps(data)
-# }
-# # # browser.post("http://fpp.local/fppjson.php$command=setInterfaceInfo&data=", json=data)
-# def post_data():
-#     r = requests.post("http://fpp.local/fppjson.php", data=payload)
+#eth0_data = get_data("eth0", data)
+wlan0_data = get_data("wlan0", data)
+#post_data(eth0_data)
+post_data(wlan0_data)

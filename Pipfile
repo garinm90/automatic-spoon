@@ -6,6 +6,8 @@ name = "pypi"
 [packages]
 requests = "*"
 paramiko = "*"
+mechanicalsoup = "*"
+"pyqt5" = "*"
 
 [dev-packages]
 pylint = "*"
