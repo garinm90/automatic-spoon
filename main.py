@@ -28,10 +28,11 @@ class AddressInputForm :
     def CreateForm(self) :
         self.root = Tk()
         self.root.title("Control Updater")
-        Label(self.root, text="Enter IP address 192.168.:").grid(row=0, sticky=W)
+        Label(self.root, text="Enter IP address 192.168.").grid(row=0, sticky=W)
+        Label(self.root, text=".").grid(row=0, column=2)
         Label(self.root, text="Enter address:").grid(row=1, sticky=W)
 
-        self.nameentry = Entry(self.root)
+        self.nameentry = Entry(self.root, width=5, justify=LEFT)
         self.addressentry = Entry(self.root)
 
         self.nameentry.grid(row=0, column=1)
@@ -44,7 +45,6 @@ class AddressInputForm :
 af = AddressInputForm()
 af.CreateForm()
 
-print(af.label_width)
 
        
 

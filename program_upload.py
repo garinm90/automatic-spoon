@@ -3,27 +3,39 @@ import requests
 import paramiko
 import socket
 import time
+import pathlib
 
-host = socket.gethostbyname("fpp-2.local")
-port = 22
-cwd = os.getcwd()
-transport = paramiko.Transport((host, port))
-play = os.path.join(cwd, 'play')
 password  = "falcon"
 username = "fpp"
+port = 22
+
+try:
+    host = socket.gethostbyname("fpp.local")
+except:
+    print("Cannot find  controller! Are you connected to the network?")
+    time.sleep(10)
+    exit()
+
+transport = paramiko.Transport((host, port))
+try:
+    transport.connect(username=username, password=password)
+except:
+    print("Connection failed!")
+sftp = paramiko.SFTPClient.from_transport(transport)
+cwd = os.getcwd()
+play = os.path.join(cwd, 'play')
 schedule = "1,play,7,00,00,00,24,00,00,1,2014-01-01,2099-12-31,"
 playlist_name = "play"
-
-
-
-transport.connect(username=username, password=password)
-session = transport.open_channel(kind="session")
-session.exec_command('rm -r /home/fpp/media/sequences/*\n\
+        
+    
+def delete_old_files():
+    session = transport.open_channel(kind="session")
+    session.exec_command('rm -r /home/fpp/media/sequences/*\n\
                     rm -r /home/fpp/media/playlists/*\n\
                     rm -f /home/fpp/media/schedule')
+    print("\nOld program deleted!\n")
 
 
-sftp = paramiko.SFTPClient.from_transport(transport)
 
 def generate_playlist():
     f = open(playlist_name, "w+")
@@ -32,28 +44,37 @@ def generate_playlist():
         if sequence.endswith(".fseq"):
             f.write(f's,{sequence},\n')
     f.close()
+    print("Playlist Created!\n")
 
 def generate_schedule():
     f = open("schedule", "w+")
     f.write(schedule)
     f.close
+    print("Schedule Created!\n")
 
 def upload_files():
+    sequence = 0
     for file in os.listdir():
         if file.endswith(".fseq"):
-            path = os.path.join("/home/fpp/media/sequences", file)
+            sequence += 1
+            path = pathlib.PurePosixPath("/home/fpp/media/sequences", file).as_posix()
             local = os.path.join(cwd, file)
             sftp.put(localpath=local, remotepath=path, callback=printTotals)
+            # print(f"Sequence {sequence} uploaded\r")
         elif file == playlist_name:
-            path = os.path.join("/home/fpp/media/playlists", file)
+            path = pathlib.PurePosixPath("/home/fpp/media/playlists", file).as_posix()
             local = os.path.join(cwd, file)
             sftp.put(localpath=local, remotepath=path, callback=printTotals)
+            # print("Playlist Uploaded\r")
         elif file == "schedule":
-            path = os.path.join("/home/fpp/media/", file)
+            path = pathlib.PurePosixPath("/home/fpp/media", file).as_posix()
             local = os.path.join(cwd, file)
             sftp.put(localpath=local, remotepath=path, callback=printTotals)
-        # else:
-        #     return "Completed"
+            # print("Schedule Uploaded\r")
+    sftp.close()
+    session = transport.open_channel(kind="session")
+    session.exec_command(f'/opt/fpp/bin.pi/fpp -p {playlist_name}')
+    transport.close()
 
 
 def printTotals(transferred, toBeTransferred):
@@ -63,11 +84,8 @@ def printTotals(transferred, toBeTransferred):
     print(f"Transferred: {KB_transferred:.2f}\tOut of: {KB_to_be_transferred:.2f}\t {percentage:.0f}%", end="\r")
     time.sleep(.1)
     
-    
+delete_old_files()
 generate_playlist()
 generate_schedule()
 upload_files()
-sftp.close()
-session = transport.open_channel(kind="session")
-session.exec_command(f'/opt/fpp/bin.pi/fpp -p {playlist_name}')
-transport.close()
+
